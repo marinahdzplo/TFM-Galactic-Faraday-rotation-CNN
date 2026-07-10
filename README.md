@@ -197,6 +197,6 @@ evaluate_on_zero_inputs(model, test_ds, "best_model.pt", n_samples=50)
 
 ## Licencia
 
-<MIT.>
+Este proyecto se distribuye bajo la [GPL-3.0 License](LICENSE). Consulta el fichero `LICENSE` para más detalles.
 
 El mapa `faraday2020v2.fits` procede de Hutschenreuter et al. (2020) y se rige por los términos de sus autores originales.
