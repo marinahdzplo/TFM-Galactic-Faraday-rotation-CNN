@@ -19,7 +19,7 @@ Ante la ausencia de una verdad observacional continua sobre el cielo, se genera 
 - **Ruido**: modelo instrumental de ruido blanco y $1/f$ derivado de las propiedades de seis canales de QUIJOTE, WMAP y Planck (11–44 GHz).
 - **Objetivo**: mapa de RM de [Hutschenreuter et al. (2020)](https://doi.org/10.1051/0004-6361/202140486) como referencia supervisada.
 
-La inversión $(Q,U)_\nu \rightarrow \mathrm{RM}$ se resuelve con una U-Net de cuatro niveles, adaptada a la geometría esférica mediante una proyección del esquema HEALPix a un tensor bidimensional de $64\times48$ píxeles ($N_\mathrm{side}=16$).
+La reconstrucción de RM se realiza a partir de una U-Net de cuatro niveles, adaptada a la geometría esférica mediante una proyección del esquema HEALPix a un tensor bidimensional de $64\times48$ píxeles ($N_\mathrm{side}=16$).
 
 ### Resultados principales
 
@@ -47,6 +47,8 @@ Sobre un conjunto de evaluación independiente:
 │   ├── fn_diagnostics.py   # Tests de interpretabilidad (memorización vs. uso del input)
 │   └── faraday2020v2.fits  # Mapa de RM de Hutschenreuter et al. (2020)
 └── README.md
+└── requirements.txt
+└── LICENSE.txt
 ```
 
 > **Nota**: los módulos importan mediante `from utils.data import ...`, por lo que deben residir en un paquete `utils/`. Ejecuta los scripts desde la raíz del repositorio.
@@ -56,8 +58,8 @@ Sobre un conjunto de evaluación independiente:
 ## Instalación
 
 ```bash
-git clone https://github.com/<usuario>/<repositorio>.git
-cd <repositorio>
+git clone https://github.com/marinahdzplo/TFM-Galactic-Faraday-rotation-CNN.git
+cd TFM-Galactic-Faraday-rotation-CNN
 
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
@@ -78,7 +80,7 @@ scikit-learn
 matplotlib
 ```
 
-`healpy` no está disponible para Windows; en ese caso se recomienda WSL o conda-forge.
+`healpy` no está disponible para Windows, en ese caso se recomienda WSL o conda-forge.
 
 ## Uso
 
@@ -158,7 +160,7 @@ Devuelve métricas espaciales por región (cielo completo, plano galáctico $|b|
 
 ### 4. Tests de interpretabilidad
 
-Dado que el mapa objetivo es común a todas las muestras, estos tests verifican que la red se apoya en la señal polarizada de entrada y no en la memorización de la geometría del objetivo:
+Dado que el mapa objetivo es común a todas las muestras, estos tests verifican que la red se apoya en la señal polarizada de entrada y no en la memorización completa de la geometría del objetivo:
 
 ```python
 from utils.fn_diagnostics import (
@@ -176,7 +178,7 @@ evaluate_on_zero_inputs(model, test_ds, "best_model.pt", n_samples=50)
 
 **Proyección HEALPix → 2D.** Las convoluciones estándar asumen una malla cartesiana. Siguiendo a [Wang et al. (2022)](https://doi.org/10.3847/1538-4365/ac5f4a), las doce caras del esquema NESTED se reorganizan en una cuadrícula de $4\times3$ caras, preservando la vecindad topológica dentro de cada cara.
 
-**Elecciones de arquitectura.** Se emplea `PReLU` en lugar de `ReLU`, ya que $Q$, $U$ y la propia RM adoptan valores negativos con significado físico (estados de polarización ortogonales y orientación del campo a lo largo de la línea de visión); anular las activaciones negativas eliminaría la mitad del rango dinámico. El sobremuestreo se realiza por interpolación bilineal en lugar de convolución transpuesta, para evitar artefactos de tipo *checkerboard* en los bordes de las caras HEALPix.
+**Elecciones de arquitectura.** Se emplea `PReLU` en lugar de `ReLU`, ya que $Q$, $U$ y la propia RM adoptan valores negativos con significado físico (estados de polarización ortogonales y orientación del campo a lo largo de la línea de visión). El sobremuestreo se realiza por interpolación bilineal en lugar de convolución transpuesta, para evitar artefactos de tipo *checkerboard* en los bordes de las caras HEALPix.
 
 **Función de pérdida.** El error absoluto medio (MAE) ofrece un gradiente de magnitud constante, más robusto frente a los valores extremos del plano galáctico que el error cuadrático.
 
@@ -186,27 +188,15 @@ evaluate_on_zero_inputs(model, test_ds, "best_model.pt", n_samples=50)
 
 - Hutschenreuter, S., et al. (2022). *The Galactic Faraday rotation sky 2020*. **A&A**, 657, A43.
 - Ronneberger, O., Fischer, P., & Brox, T. (2015). *U-Net: Convolutional networks for biomedical image segmentation*. **MICCAI**, 234–241.
-- Wang, G.-J., et al. (2022). *Recovering the CMB signal with a convolutional neural network*. **ApJS**, 260, 13.
-- Górski, K. M., et al. (2005). *HEALPix: A framework for high-resolution discretization of the sphere*. **ApJ**, 622, 759.
+- Wang, G.-J., et al. (2022). *Recovering the CMB Signal with Machine Learning*. **ApJS**, 260, 13.
+- Górski, K. M., et al. (2005). *HEALPix: A Framework for High-Resolution Discretization and Fast Analysis of Data Distributed on the Sphere*. **ApJ**, 622, 759.
 - Thorne, B., et al. (2017). *The Python Sky Model: software for simulating the Galactic microwave sky*. **MNRAS**, 469, 2821.
-- Rubiño-Martín, J. A., et al. (2023). *QUIJOTE scientific results IV*. **MNRAS**, 519, 3383.
+- Rubiño-Martín, J. A., et al. (2023). *QUIJOTE scientific results – IV. A northern sky survey in intensity and polarization at 10–20 GHz with the Multi-Frequency Instrument*. **MNRAS**, 519, 3383.
 
 ---
 
-## Cita
-
-```bibtex
-@mastersthesis{<apellido><año>rm,
-  author  = {<Nombre Apellido>},
-  title   = {Reconstrucción de la medida de rotación de Faraday galáctica
-             mediante redes neuronales convolucionales},
-  school  = {<Universidad>},
-  year    = {<año>},
-  type    = {Trabajo de Fin de Máster}
-}
-```
-
 ## Licencia
 
-<Especificar licencia, p. ej. MIT.>
+<MIT.>
+
 El mapa `faraday2020v2.fits` procede de Hutschenreuter et al. (2020) y se rige por los términos de sus autores originales.
